@@ -13,8 +13,9 @@
     "windows": [
       {
         "title": "tauri-app",
-        "width": 800,
-        "height": 600
+        "decorations": false,
+        "width": 1200,
+        "height": 900
       }
     ],
     "security": {
@@ -30,6 +31,9 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
+    ],
+    "resources": [
+      "../static/**/*"
     ]
   }
 }
