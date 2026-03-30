@@ -1,20 +1,21 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "rust-echo-music",
+  "productName": "tauri-app",
   "version": "0.1.0",
   "identifier": "com.rustechomusic.app",
   "build": {
-    "beforeDevCommand": "npm run dev",
-    "devUrl": "http://localhost:39391",
-    "beforeBuildCommand": "npm run build",
-    "frontendDist": "../dist"
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "../build"
   },
   "app": {
     "windows": [
       {
-        "title": "rust-echo-music",
-        "width": 800,
-        "height": 600
+        "title": "tauri-app",
+        "decorations": false,
+        "width": 1200,
+        "height": 900
       }
     ],
     "security": {
@@ -30,6 +31,9 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
+    ],
+    "resources": [
+      "../static/**/*"
     ]
   }
 }
