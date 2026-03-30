@@ -1,8 +1,6 @@
 <script lang="ts">
-  import Appbar from '../components/Appbar.svelte'
-  import Header from '../components/Header.svelte'
-  import Playlists from '../components/Playlists.svelte'
-  import RecentSongs from '../components/RecentSongs.svelte'
+  import Playlists from "$lib/components/Playlists.svelte"
+  import RecentSongs from "$lib/components/RecentSongs.svelte"
 
   const playlists = [
     {
@@ -67,17 +65,10 @@
   ]
 </script>
 
-<main
-  class="flex flex-col h-screen w-screen overflow-hidden bg-(--controlWhite) text-(--controlBlack)"
->
-  <Appbar />
-  <Header />
-
-  <div class="flex-1 overflow-y-auto p-8">
-    <Playlists {playlists} />
-    <RecentSongs songs={recentSongs} />
-  </div>
-</main>
+<div class="overflow-y-auto p-8">
+  <Playlists {playlists} />
+  <RecentSongs songs={recentSongs} />
+</div>
 
 <style lang="postcss">
   @reference "tailwindcss";

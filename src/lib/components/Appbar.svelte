@@ -1,4 +1,8 @@
 <script lang="ts">
+  import '@mdui/icons/close--rounded.js'
+  import '@mdui/icons/fullscreen--rounded.js'
+  import '@mdui/icons/fullscreen-exit--rounded.js'
+  import '@mdui/icons/minimize--rounded.js'
   import { Window } from '@tauri-apps/api/window'
 
   const appWindow = new Window('main')
@@ -17,21 +21,28 @@
     appWindow.close()
   }
 
-  function drag(e: MouseEvent) {
+  function drag(e: PointerEvent) {
+    const target = e.target as HTMLElement
+    if (target.closest('div[role="button"]')) {
+      return
+    }
     if (e.buttons === 1) {
       e.detail === 2 ? appWindow.toggleMaximize() : appWindow.startDragging()
     }
   }
 </script>
 
-<div
-  class="fixed top-0 z-50 w-full h-14 flex items-center"
-  // onpointerdown={drag}
+<mdui-top-app-bar
+  style="--z-index: 1"
+  class="fixed top-0 w-full h-14 flex items-center"
+  onpointerdown={drag}
   role="banner"
 >
-  <div class="flex items-center pl-6 w-28">
-    <div class="opacity-70 font-medium">REM</div>
-  </div>
+  <mdui-top-app-bar-title
+    class="flex items-center pl-6 w-28 opacity-70 font-medium"
+  >
+    REM
+  </mdui-top-app-bar-title>
 
   <div class="flex-1 flex items-center justify-center">
     <div class="max-w-md w-full"></div>
@@ -48,7 +59,7 @@
         role="button"
         tabindex="0"
       >
-        <md-icon class="material-symbols-rounded">minimize</md-icon>
+        <mdui-icon-minimize--rounded></mdui-icon-minimize--rounded>
       </div>
       <div
         class="flex items-center justify-center w-8 h-8 rounded cursor-pointer bg-transparent hover:bg-(--fade) active:bg-(--controlBlackAcrylic) text-lg mx-1"
@@ -59,10 +70,14 @@
         role="button"
         tabindex="0"
       >
-        <md-icon class="material-symbols-rounded"
-          >{fullScreen ? "fullscreen_exit" : "fullscreen"}</md-icon
-        >
+        {#if !fullScreen}
+          <mdui-icon-fullscreen--rounded></mdui-icon-fullscreen--rounded>
+        {:else}
+          <mdui-icon-fullscreen-exit--rounded
+          ></mdui-icon-fullscreen-exit--rounded>
+        {/if}
       </div>
+
       <div
         class="flex items-center justify-center w-8 h-8 rounded cursor-pointer bg-transparent hover:bg-red-600 hover:text-white active:bg-red-800 active:text-gray-300 text-lg"
         onclick={close}
@@ -72,8 +87,8 @@
         role="button"
         tabindex="0"
       >
-        <md-icon class="material-symbols-rounded">close</md-icon>
+        <mdui-icon-close--rounded></mdui-icon-close--rounded>
       </div>
     </div>
   </div>
-</div>
+</mdui-top-app-bar>

@@ -1,14 +1,25 @@
 <script>
-  import '@material/web/all.js'
-  import 'material-symbols'
+  import Appbar from '$lib/components/Appbar.svelte'
+  import Header from '$lib/components/Header.svelte'
+  import NavRail from '$lib/components/NavRail.svelte'
+  import PlayerBar from '$lib/components/PlayerBar.svelte'
+  import 'mdui'
+  import 'mdui/mdui.css'
   import '../app.css'
-  import Appbar from '../components/Appbar.svelte'
 
   let { children } = $props()
 </script>
 
-<Appbar />
+<mdui-layout full-height>
+  <Appbar />
+  <PlayerBar />
+  <NavRail />
 
-<main class="container">
-  {@render children()}
-</main>
+  <mdui-layout-main
+    class="flex flex-col h-screen w-screen overflow-hidden bg-(--controlWhite) text-(--controlBlack)"
+  >
+    <Header />
+
+    {@render children()}
+  </mdui-layout-main>
+</mdui-layout>
