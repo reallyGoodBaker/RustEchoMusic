@@ -31,7 +31,7 @@ fn play_music(name: &str) -> String {
     src.start();
 
     let buffer_duration = src.buffer().unwrap().duration() as f64;
-    let sleep_duration = std::time::Duration::from_secs_f64(buffer_duration);
+    // let sleep_duration = std::time::Duration::from_secs_f64(buffer_duration);
 
     format!("Playing music: {}", name)
 }

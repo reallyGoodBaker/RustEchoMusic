@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "tauri-app",
+  "productName": "rust-echo-music",
   "version": "0.1.0",
   "identifier": "com.rustechomusic.app",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "tauri-app",
+        "title": "REM",
         "decorations": false,
         "width": 1200,
         "height": 900

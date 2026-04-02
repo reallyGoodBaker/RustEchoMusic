@@ -1,67 +1,102 @@
-<script>
-  import { playerState } from '$lib/player.svelte'
+<script lang="ts">
+  import { goto } from '$app/navigation'
+  import { playerState, type Track } from '$lib/player.svelte'
+  import AudioEqualizerModal from './AudioEqualizerModal.svelte'
+  import PlaylistManagerModal from './PlaylistManagerModal.svelte'
   import Slider from './Slider.svelte'
 
-  async function switchTrack(step) {
-    if (!playerState.playlist.length || !playerState.current) return
+  let showEqualizer = $state(false)
+  let showPlaylist = $state(false)
 
-    const len = playerState.playlist.length
-    const currentIndex = playerState.playlist.indexOf(playerState.current)
-
-    const newIndex = (currentIndex + step + len) % len
-
-    playerState.current = playerState.playlist[newIndex]
-    playerState.progress = 0
-    playerState.isPlaying = true
+  export function play(track?: Track) {
+    playerState.play(track)
+  }
+  export function pause() {
+    playerState.pause()
+  }
+  export function toggle() {
+    playerState.toggle()
+  }
+  export function next() {
+    playerState.next()
+  }
+  export function prev() {
+    playerState.prev()
   }
 
-  export const next = () => switchTrack(1)
-  export const prev = () => switchTrack(-1)
-
-  export function toggle() {
-    playerState.isPlaying = !playerState.isPlaying
+  function handleImageError(e: Event) {
+    const target = e.target as HTMLImageElement
+    target.src =
+      'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIGZpbGw9IiNlMGUwZTAiLz48cGF0aCBkPSJNMzIgMjBhMTIgMTIgMCAxIDAgMCAyNCAxMiAxMiAwIDAgMCAwLTI0em0wIDE4YTggOCAwIDEgMSAwLTE2IDggOCAwIDAgMSAwIDE2eiIgZmlsbD0iI2EwYTBhMCIvPjwvc3ZnPg=='
   }
 </script>
 
 <mdui-bottom-app-bar
-  class="relative flex flex-col h-24 px-4 pb-2"
-  style="--z-index: 10"
+  class="relative h-20 min-w-[320px] px-4"
+  style="--z-index: 10; background-color: var(--controlBackground2);"
 >
   <Slider
-    value="100"
-    class="absolute top-0 left-0 w-full px-2 -translate-y-1/2"
+    value={playerState.progress.toString()}
+    classList="absolute top-0 left-0 w-full px-2 -translate-y-1/2"
   />
 
-  <div class="info">
-    <div>{playerState.current?.title}</div>
-    <div class="artist">{playerState.current?.artist}</div>
-  </div>
-
-  <div class="flex items-center justify-between w-full h-full mt-2">
-    <div class="flex flex-col justify-center min-w-37.5 overflow-hidden">
-      <div class="text-sm font-medium truncate">
-        {playerState.current?.title ?? '未在播放'}
+  <div
+    class="grid h-full w-full items-center gap-4"
+    style="grid-template-columns: minmax(120px, 1fr) auto minmax(120px, 1fr);"
+  >
+    <!-- Left: Cover and Info -->
+    <div
+      class="flex items-center gap-3 overflow-hidden cursor-pointer"
+      role="link"
+      tabindex="0"
+      onclick={() => goto(`/lyrics?trackId=${playerState.current?.id}`)}
+      onkeydown={e =>
+        e.key === 'Enter' && goto(`/lyrics?trackId=${playerState.current?.id}`)}
+    >
+      <div
+        class="h-16 w-16 shrink-0 overflow-hidden rounded-[8px] bg-[var(--controlGray)] shadow-sm"
+      >
+        <img
+          src={playerState.current?.cover ||
+            'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIGZpbGw9IiNlMGUwZTAiLz48cGF0aCBkPSJNMzIgMjBhMTIgMTIgMCAxIDAgMCAyNCAxMiAxMiAwIDAgMCAwLTI0em0wIDE4YTggOCAwIDEgMSAwLTE2IDggOCAwIDAgMSAwIDE2eiIgZmlsbD0iI2EwYTBhMCIvPjwvc3ZnPg=='}
+          alt={playerState.current?.title || 'Cover'}
+          class="h-full w-full object-cover transition-opacity"
+          loading="lazy"
+          onerror={handleImageError}
+        />
       </div>
-      <div class="text-xs opacity-70 truncate">
-        {playerState.current?.artist ?? '未知艺术家'}
+      <div class="flex min-w-0 flex-col justify-center">
+        <div
+          class="truncate text-sm font-medium leading-tight"
+          title={playerState.current?.title ?? '未在播放'}
+        >
+          {playerState.current?.title ?? '未在播放'}
+        </div>
+        <div
+          class="truncate text-xs opacity-70 mt-1 leading-tight"
+          title={playerState.current?.artist ?? '未知艺术家'}
+        >
+          {playerState.current?.artist ?? '未知艺术家'}
+        </div>
       </div>
     </div>
 
-    <div class="flex items-center gap-2">
+    <!-- Center: Main Controls -->
+    <div class="flex items-center gap-2 justify-center">
       <mdui-button-icon
         icon="skip_previous--rounded"
         role="button"
         tabindex="0"
         onclick={prev}
-        onkeydown={e => e.key === 'Enter' && prev()}
+        onkeydown={(e: KeyboardEvent) => e.key === 'Enter' && prev()}
       ></mdui-button-icon>
       <mdui-button-icon
-        variant="filled" 
+        variant="filled"
         icon={playerState.isPlaying ? 'pause--rounded' : 'play_arrow--rounded'}
         role="button"
         tabindex="0"
         onclick={toggle}
-        onkeydown={e => e.key === 'Enter' && toggle()}
+        onkeydown={(e: KeyboardEvent) => e.key === 'Enter' && toggle()}
       >
       </mdui-button-icon>
       <mdui-button-icon
@@ -69,14 +104,66 @@
         role="button"
         tabindex="0"
         onclick={next}
-        onkeydown={e => e.key === 'Enter' && next()}
+        onkeydown={(e: KeyboardEvent) => e.key === 'Enter' && next()}
       ></mdui-button-icon>
     </div>
 
-    <div class="flex items-center min-w-37.5 justify-end">
-      <mdui-button-icon icon="volume_up--rounded" class="text-lg opacity-70">
-      </mdui-button-icon>
-      <Slider value="100" class="w-32" />
+    <!-- Right: Additional Controls (Volume, etc) -->
+    <div class="flex items-center justify-end gap-2">
+      <mdui-button-icon
+        icon={playerState.loopMode === 'one'
+          ? 'repeat_one--rounded'
+          : playerState.loopMode === 'all'
+            ? 'repeat--rounded'
+            : playerState.loopMode === 'random'
+              ? 'shuffle--rounded'
+              : 'repeat--rounded'}
+        class={playerState.loopMode === 'none'
+          ? 'opacity-50'
+          : 'opacity-100 text-primary'}
+        role="button"
+        tabindex="0"
+        onclick={() => playerState.toggleLoopMode()}
+        onkeydown={(e: KeyboardEvent) =>
+          e.key === 'Enter' && playerState.toggleLoopMode()}
+      ></mdui-button-icon>
+
+      <mdui-button-icon
+        icon="equalizer--rounded"
+        class="opacity-70 hover:opacity-100"
+        role="button"
+        tabindex="0"
+        onclick={() => (showEqualizer = true)}
+        onkeydown={(e: KeyboardEvent) =>
+          e.key === 'Enter' && (showEqualizer = true)}
+      ></mdui-button-icon>
+
+      <mdui-button-icon
+        icon="queue_music--rounded"
+        class="opacity-70 hover:opacity-100"
+        role="button"
+        tabindex="0"
+        onclick={() => (showPlaylist = true)}
+        onkeydown={(e: KeyboardEvent) =>
+          e.key === 'Enter' && (showPlaylist = true)}
+      ></mdui-button-icon>
+
+      <div class="flex items-center w-32 justify-end">
+        <mdui-button-icon
+          icon="volume_up--rounded"
+          class="text-lg opacity-70 shrink-0"
+        >
+        </mdui-button-icon>
+        <Slider value="100" classList="w-24" />
+      </div>
     </div>
   </div>
 </mdui-bottom-app-bar>
+
+{#if showEqualizer}
+  <AudioEqualizerModal onclose={() => (showEqualizer = false)} />
+{/if}
+
+{#if showPlaylist}
+  <PlaylistManagerModal onclose={() => (showPlaylist = false)} />
+{/if}

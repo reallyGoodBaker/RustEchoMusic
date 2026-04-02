@@ -13,11 +13,11 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@floating-ui/dom": "^1.7.6",
     "@mdui/icons": "^1.0.3",
     "@tailwindcss/vite": "^4.2.2",
     "@tauri-apps/api": "^2.10.1",
     "@tauri-apps/plugin-opener": "^2.5.3",
-    "material-symbols": "^0.43.0",
     "mdui": "^2.1.4",
     "tailwindcss": "^4.2.2"
   },

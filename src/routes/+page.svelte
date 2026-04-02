@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Playlists from "$lib/components/Playlists.svelte"
-  import RecentSongs from "$lib/components/RecentSongs.svelte"
+  import Playlists from '$lib/components/Playlists.svelte'
+  import RecentSongs from '$lib/components/RecentSongs.svelte'
 
   const playlists = [
     {

@@ -1,36 +1,64 @@
 <script lang="ts">
-  export let song: {
-    id: number
-    title: string
-    artist: string
-    album: string
-    cover: string
+  import { playerState } from '$lib/player.svelte'
+
+  let {
+    song,
+  }: {
+    song: {
+      id: number
+      title: string
+      artist: string
+      album: string
+      cover: string
+      releaseDate?: string
+    }
+  } = $props()
+
+  function handlePlay() {
+    playerState.play({
+      id: song.id,
+      title: song.title,
+      artist: song.artist,
+      album: song.album,
+      cover: song.cover,
+      path: `music/${song.artist} - ${song.title}.flac`
+    })
   }
 </script>
 
-<md-card
-  style="--md-card-container-color: var(--controlBackground2); --md-card-container-shape: 8px;"
-  class="p-4 flex items-center gap-4"
+<mdui-card
+  variant="elevated"
+  class="flex items-center gap-4 p-4 w-full shadow-md hover:bg-[var(--controlBackgroundHover)] transition-colors cursor-pointer"
+  style="border-radius: 12px;"
+  ondblclick={handlePlay}
+  onkeydown={(e: KeyboardEvent) => e.key === 'Enter' && handlePlay()}
+  role="button"
+  tabindex="0"
+  data-song-id={song.id}
+  data-song-title={song.title}
+  data-song-artist={song.artist}
+  data-song-album={song.album}
+  data-song-cover={song.cover}
 >
-  <div class="w-14 h-14 rounded overflow-hidden">
+  <div class="h-16 w-16 shrink-0 overflow-hidden rounded-xl">
     <img
       src={song.cover}
       alt={song.title}
-      class="w-full h-full object-cover"
+      class="h-full w-full object-cover"
     />
   </div>
-  <div class="flex-1">
-    <h3 class="text-base font-medium mb-1">{song.title}</h3>
-    <p class="text-sm text-(--controlBlack52)">
-      {song.artist} - {song.album}
-    </p>
+  <div class="flex-1 min-w-0">
+    <h3 class="mb-1 truncate text-base font-medium" title={song.title}>
+      {song.title}
+    </h3>
+    <div class="flex flex-col text-sm opacity-70 sm:flex-row sm:items-center sm:gap-2">
+      <p class="truncate" title={`${song.artist} - ${song.album}`}>
+        {song.artist} - {song.album}
+      </p>
+      {#if song.releaseDate}
+        <span class="hidden sm:inline">•</span>
+        <p class="truncate">{song.releaseDate}</p>
+      {/if}
+    </div>
   </div>
-  <div class="flex gap-2">
-    <md-icon-button>
-      <md-icon class="material-symbols-rounded">play_arrow</md-icon>
-    </md-icon-button>
-    <md-icon-button>
-      <md-icon class="material-symbols-rounded">more_vert</md-icon>
-    </md-icon-button>
-  </div>
-</md-card>
+</mdui-card>
