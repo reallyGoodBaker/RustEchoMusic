@@ -36,11 +36,11 @@ class Player {
       }
     }
 
-    if (!this.current) return
+    // if (!this.current) return
 
     try {
       await invoke('play_music', {
-        name: this.current.path || 'music/40mP 初音ミク - 恋愛裁判.flac',
+        name: this.current?.path || '40mP 初音ミク - 恋愛裁判.flac',
       })
       this.isPlaying = true
     } catch (e) {
