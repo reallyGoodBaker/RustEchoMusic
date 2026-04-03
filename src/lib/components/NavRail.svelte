@@ -1,8 +1,10 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
+  import { invoke } from '@tauri-apps/api/core'
   import 'mdui/components/navigation-rail-item.js'
   import 'mdui/components/navigation-rail.js'
+  import 'mdui/components/snackbar.js'
 
   const routes = [
     {
@@ -39,10 +41,33 @@
       goto(path)
     }
   }
+
+  async function handleAddMusic() {
+    try {
+      const result = await invoke('select_music_folder')
+      const musicFiles = result as Array<{ path: string; name: string }>
+
+      if (musicFiles.length > 0) {
+        await invoke('play_music_from_path', { path: musicFiles[0].path })
+
+        const snackbar = document.createElement('mdui-snackbar')
+        snackbar.textContent = `已加载 ${musicFiles.length} 首音乐文件`
+        snackbar.open = true
+      }
+    } catch (error) {
+      console.error('Failed to select music folder:', error)
+
+      const snackbar = document.createElement('mdui-snackbar')
+      snackbar.textContent =
+        error instanceof Error ? error.message : 'Failed to load music'
+      snackbar.open = true
+    }
+  }
 </script>
 
 <mdui-navigation-rail value={currentPath} style="--z-index: 1">
-  <mdui-fab lowered icon="search--outlined" slot="top"></mdui-fab>
+  <mdui-fab lowered icon="add--outlined" slot="top" onclick={handleAddMusic}
+  ></mdui-fab>
 
   {#each routes as route (route.path)}
     <mdui-navigation-rail-item

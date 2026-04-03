@@ -23,6 +23,9 @@
   export function prev() {
     playerState.prev()
   }
+  export function toggleMute() {
+    playerState.toggleMute()
+  }
 
   function handleImageError(e: Event) {
     const target = e.target as HTMLImageElement
@@ -45,16 +48,15 @@
     style="grid-template-columns: minmax(120px, 1fr) auto minmax(120px, 1fr);"
   >
     <!-- Left: Cover and Info -->
-    <div
-      class="flex items-center gap-3 overflow-hidden cursor-pointer"
-      role="link"
-      tabindex="0"
-      onclick={() => goto(`/lyrics?trackId=${playerState.current?.id}`)}
-      onkeydown={e =>
-        e.key === 'Enter' && goto(`/lyrics?trackId=${playerState.current?.id}`)}
-    >
+    <div class="flex items-center gap-3 overflow-hidden">
       <div
-        class="h-16 w-16 shrink-0 overflow-hidden rounded-[8px] bg-[var(--controlGray)] shadow-sm"
+        class="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-(--controlGray) shadow-sm cursor-pointer"
+        role="link"
+        tabindex="0"
+        onclick={() => goto(`/lyrics?trackId=${playerState.current?.id}`)}
+        onkeydown={e =>
+          e.key === 'Enter' &&
+          goto(`/lyrics?trackId=${playerState.current?.id}`)}
       >
         <img
           src={playerState.current?.cover ||
@@ -129,8 +131,7 @@
       ></mdui-button-icon>
 
       <mdui-button-icon
-        icon="equalizer--rounded"
-        class="opacity-70 hover:opacity-100"
+        icon="tune--rounded"
         role="button"
         tabindex="0"
         onclick={() => (showEqualizer = true)}
@@ -140,7 +141,6 @@
 
       <mdui-button-icon
         icon="queue_music--rounded"
-        class="opacity-70 hover:opacity-100"
         role="button"
         tabindex="0"
         onclick={() => (showPlaylist = true)}
@@ -150,10 +150,13 @@
 
       <div class="flex items-center w-32 justify-end">
         <mdui-button-icon
-          icon="volume_up--rounded"
-          class="text-lg opacity-70 shrink-0"
-        >
-        </mdui-button-icon>
+          icon={playerState.mute ? 'volume_off--rounded' : 'volume_up--rounded'}
+          class="text-lg shrink-0 cursor-pointer"
+          role="button"
+          tabindex="0"
+          onclick={() => toggleMute()}
+          onkeydown={(e: KeyboardEvent) => e.key === 'Enter' && toggleMute()}
+        ></mdui-button-icon>
         <Slider value="100" classList="w-24" />
       </div>
     </div>

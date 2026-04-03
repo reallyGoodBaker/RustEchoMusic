@@ -15,6 +15,7 @@ class Player {
   playlist = $state<Track[]>([])
   progress = $state(0)
   loopMode = $state<'none' | 'all' | 'one' | 'random'>('none')
+  mute = $state(false)
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -23,7 +24,9 @@ class Player {
         if (['none', 'all', 'one', 'random'].includes(saved)) {
           this.loopMode = saved
         }
-      } catch (e) {}
+      } catch (e) {
+        console.error('Failed to load loop mode:', e)
+      }
     }
   }
 
@@ -40,7 +43,7 @@ class Player {
 
     try {
       await invoke('play_music', {
-        name: this.current?.path || '40mP 初音ミク - 恋愛裁判.flac',
+        name: this.current?.path,
       })
       this.isPlaying = true
     } catch (e) {
@@ -101,6 +104,10 @@ class Player {
     try {
       localStorage.setItem('loopMode', this.loopMode)
     } catch (e) {}
+  }
+
+  toggleMute() {
+    this.mute = !this.mute
   }
 }
 
