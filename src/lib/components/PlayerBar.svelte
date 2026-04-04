@@ -27,10 +27,18 @@
     playerState.toggleMute()
   }
 
+  const defaultCover =
+    'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY4Ij48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIGZpbGw9IiNlMGUwZTAiLz48cGF0aCBkPSJNMzIgMjBhMTIgMTIgMCAxIDAgMCAyNCAxMiAxMiAwIDAgMCAwLTI0em0wIDE4YTggOCAwIDEgMSAwLTE2IDggOCAwIDAgMSAwIDE2eiIgZmlsbD0iI2EwYTBhMCIvPjwvc3ZnPg=='
+
   function handleImageError(e: Event) {
-    const target = e.target as HTMLImageElement
-    target.src =
-      'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIGZpbGw9IiNlMGUwZTAiLz48cGF0aCBkPSJNMzIgMjBhMTIgMTIgMCAxIDAgMCAyNCAxMiAxMiAwIDAgMCAwLTI0em0wIDE4YTggOCAwIDEgMSAwLTE2IDggOCAwIDAgMSAwIDE2eiIgZmlsbD0iI2EwYTBhMCIvPjwvc3ZnPg=='
+    ;(e.target as HTMLImageElement).src = defaultCover
+  }
+
+  function formatDuration(seconds: number): string {
+    if (!seconds || seconds <= 0) return '--:--'
+    const m = Math.floor(seconds / 60)
+    const s = Math.floor(seconds % 60)
+    return `${m}:${s.toString().padStart(2, '0')}`
   }
 </script>
 
@@ -45,40 +53,82 @@
 
   <div
     class="grid h-full w-full items-center gap-4"
-    style="grid-template-columns: minmax(120px, 1fr) auto minmax(120px, 1fr);"
+    style="grid-template-columns: minmax(140px, 1fr) auto minmax(120px, 1fr);"
   >
     <!-- Left: Cover and Info -->
     <div class="flex items-center gap-3 overflow-hidden">
       <div
-        class="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-(--controlGray) shadow-sm cursor-pointer"
+        class="group relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-(--controlGray) shadow-sm cursor-pointer ring-2 ring-transparent transition-all hover:ring-primary/40"
         role="link"
         tabindex="0"
+        title={playerState.current
+          ? `${playerState.current.title} - ${playerState.current.artist}${playerState.current.album !== 'Unknown Album' ? `\n专辑: ${playerState.current.album}` : ''}`
+          : ''}
         onclick={() => goto(`/lyrics?trackId=${playerState.current?.id}`)}
-        onkeydown={e =>
+        onkeydown={(e: KeyboardEvent) =>
           e.key === 'Enter' &&
           goto(`/lyrics?trackId=${playerState.current?.id}`)}
       >
         <img
-          src={playerState.current?.cover ||
-            'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIGZpbGw9IiNlMGUwZTAiLz48cGF0aCBkPSJNMzIgMjBhMTIgMTIgMCAxIDAgMCAyNCAxMiAxMiAwIDAgMCAwLTI0em0wIDE4YTggOCAwIDEgMSAwLTE2IDggOCAwIDAgMSAwIDE2eiIgZmlsbD0iI2EwYTBhMCIvPjwvc3ZnPg=='}
+          src={playerState.current?.cover || defaultCover}
           alt={playerState.current?.title || 'Cover'}
-          class="h-full w-full object-cover transition-opacity"
+          class="h-full w-full object-cover transition-opacity group-hover:scale-105"
           loading="lazy"
           onerror={handleImageError}
         />
+        {#if playerState.isPlaying}
+          <div
+            class="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity group-hover:opacity-100"
+          >
+            <div
+              class="h-6 w-6 rounded-full bg-white/90 flex items-center justify-center"
+            >
+              <div class="flex gap-0.5 items-end h-3 px-1">
+                <span
+                  class="w-0.75 bg-primary animate-pulse"
+                  style="height: 40%"
+                ></span>
+                <span
+                  class="w-0.75 bg-primary animate-pulse"
+                  style="height: 70%; animation-delay: 0.15s"
+                ></span>
+                <span
+                  class="w-0.75 bg-primary animate-pulse"
+                  style="height: 50%; animation-delay: 0.3s"
+                ></span>
+              </div>
+            </div>
+          </div>
+        {/if}
       </div>
+
       <div class="flex min-w-0 flex-col justify-center">
         <div
-          class="truncate text-sm font-medium leading-tight"
+          class="truncate text-sm font-medium leading-tight cursor-pointer hover:text-primary transition-colors"
           title={playerState.current?.title ?? '未在播放'}
+          onclick={() => goto(`/lyrics?trackId=${playerState.current?.id}`)}
+          role="button"
+          tabindex="0"
+          onkeydown={(e: KeyboardEvent) =>
+            e.key === 'Enter' &&
+            goto(`/lyrics?trackId=${playerState.current?.id}`)}
         >
+          <!-- {#if playerState.isPlaying}
+            <span
+              class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1.5 align-middle animate-pulse"
+            ></span>
+          {/if} -->
           {playerState.current?.title ?? '未在播放'}
         </div>
         <div
-          class="truncate text-xs opacity-70 mt-1 leading-tight"
-          title={playerState.current?.artist ?? '未知艺术家'}
+          class="truncate text-xs opacity-70 mt-0.5 leading-tight"
+          title={`${playerState.current?.artist ?? '未知艺术家'}${playerState.current?.album && playerState.current.album !== 'Unknown Album' ? ` · ${playerState.current.album}` : ''}`}
         >
           {playerState.current?.artist ?? '未知艺术家'}
+          {#if playerState.current?.album && playerState.current.album !== 'Unknown Album'}
+            <span class="opacity-50 mx-1">·</span>
+            <span>{playerState.current.album}</span>
+          {/if}
         </div>
       </div>
     </div>
@@ -110,7 +160,7 @@
       ></mdui-button-icon>
     </div>
 
-    <!-- Right: Additional Controls (Volume, etc) -->
+    <!-- Right: Additional Controls -->
     <div class="flex items-center justify-end gap-2">
       <mdui-button-icon
         icon={playerState.loopMode === 'one'

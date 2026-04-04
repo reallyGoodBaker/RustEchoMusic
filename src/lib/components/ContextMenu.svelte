@@ -1,71 +1,120 @@
 <script lang="ts">
   import { playerState, type Track } from '$lib/player.svelte'
+  import { invoke } from '@tauri-apps/api/core'
+  import 'mdui/components/button.js'
+  import 'mdui/components/dialog.js'
   import 'mdui/components/list-item.js'
   import 'mdui/components/list.js'
+  import { snackbar } from 'mdui/functions/snackbar.js'
+  import { fade, scale } from 'svelte/transition'
 
   let {
     x = 0,
     y = 0,
     track,
+    songIndex = -1,
     onclose,
+    onremovefromlibrary,
   }: {
     x: number
     y: number
     track: Track
+    songIndex?: number
     onclose: () => void
+    onremovefromlibrary?: (index: number) => void
   } = $props()
 
   let menuElement: HTMLElement | null = $state(null)
+  let showDeleteDialog = $state(false)
 
   $effect(() => {
     if (menuElement) {
-      // 1. 显示 Popover
       if (!menuElement.matches(':popover-open')) {
         menuElement.showPopover()
       }
 
-      // 2. 原生实现 flip 和 shift（边界防溢出检测）
       const rect = menuElement.getBoundingClientRect()
       const viewportWidth = window.innerWidth
       const viewportHeight = window.innerHeight
-      const padding = 8 // 贴边时的安全距离
+      const padding = 8
 
-      let finalX = x + 4 // 模拟 offset(4)
+      let finalX = x + 4
       let finalY = y
 
-      // 处理右侧溢出 (类似 shift)
       if (finalX + rect.width > viewportWidth - padding) {
         finalX = viewportWidth - rect.width - padding
       }
-      
-      // 处理底部溢出 (类似 flip)
+
       if (finalY + rect.height > viewportHeight - padding) {
-        finalY = y - rect.height - 4 // 向上翻转
-        
-        // 如果向上翻转后顶部又溢出了，则强制限制在顶部
+        finalY = y - rect.height - 4
+
         if (finalY < padding) {
           finalY = padding
         }
       }
 
-      // 3. 应用计算后的位置并显示
       menuElement.style.left = `${finalX}px`
       menuElement.style.top = `${finalY}px`
       menuElement.style.opacity = '1'
     }
   })
 
-  function handleAction(action: string) {
-    if (action === 'next') {
-      playerState.playlist.push(track)
-    }
-    // 关闭时调用原生方法隐藏
+  function closeMenu() {
     if (menuElement) {
       menuElement.hidePopover()
     }
+    onclose()
   }
 
-  // 监听 popover 的原生关闭事件
+  async function handleAddToPlaylist() {
+    playerState.insertNext(track)
+    snackbar({ message: `已将 "${track.title}" 添加到播放队列下一首` })
+    closeMenu()
+  }
+
+  function handleShowDeleteConfirm() {
+    showDeleteDialog = true
+  }
+
+  async function handleDeleteFile() {
+    try {
+      await invoke('delete_file', { path: track.path })
+      snackbar({ message: `已删除文件 "${track.title}"` })
+
+      if (onremovefromlibrary && songIndex >= 0) {
+        onremovefromlibrary(songIndex)
+      }
+    } catch (e) {
+      console.error('Failed to delete file:', e)
+      snackbar({
+        message: e instanceof Error ? e.message : '删除文件失败',
+      })
+    }
+
+    showDeleteDialog = false
+    closeMenu()
+  }
+
+  async function handleOpenFolder() {
+    try {
+      await invoke('open_containing_folder', { path: track.path })
+    } catch (e) {
+      console.error('Failed to open folder:', e)
+      snackbar({
+        message: e instanceof Error ? e.message : '无法打开文件夹',
+      })
+    }
+    closeMenu()
+  }
+
+  function handleRemoveFromLibrary() {
+    if (onremovefromlibrary && songIndex >= 0) {
+      onremovefromlibrary(songIndex)
+      snackbar({ message: `已从音乐库移除 "${track.title}"` })
+    }
+    closeMenu()
+  }
+
   function handleToggle(e: ToggleEvent) {
     if (e.newState === 'closed') {
       onclose()
@@ -73,48 +122,116 @@
   }
 </script>
 
+<svelte:window onkeydown={e => e.key === 'Escape' && closeMenu()} />
+
 <div
-  popover="auto"
+  popover="hint"
   bind:this={menuElement}
   ontoggle={handleToggle}
-  class="fixed m-0 z-50 min-w-50 overflow-hidden rounded-xl bg-(--controlBackground) py-2 shadow-xl border border-(--controlGray) opacity-0 transition-opacity"
+  class="fixed m-0 z-50 min-w-56 overflow-hidden rounded-xl bg-(--controlBackground) py-2 shadow-xl border border-(--controlGray) opacity-0 transition-opacity"
 >
   <mdui-list>
     <mdui-list-item
-      icon="queue_music--rounded"
-      onclick={() => handleAction('next')}
-      onkeydown={(e: KeyboardEvent) => e.key === 'Enter' && handleAction('next')}
+      icon="playlist_add--outlined"
+      onclick={handleAddToPlaylist}
+      onkeydown={(e: KeyboardEvent) =>
+        e.key === 'Enter' && handleAddToPlaylist()}
       role="menuitem"
       tabindex="0"
     >
-      Play Next
+      添加到播放列表（下一首）
     </mdui-list-item>
+
     <mdui-list-item
-      icon="playlist_add--rounded"
-      onclick={() => handleAction('add')}
-      onkeydown={(e: KeyboardEvent) => e.key === 'Enter' && handleAction('add')}
+      icon="folder_open--outlined"
+      onclick={handleOpenFolder}
+      onkeydown={(e: KeyboardEvent) => e.key === 'Enter' && handleOpenFolder()}
       role="menuitem"
       tabindex="0"
     >
-      Add to Playlist
+      打开所在文件夹
     </mdui-list-item>
+
     <mdui-list-item
-      icon="favorite_border--rounded"
-      onclick={() => handleAction('favorite')}
-      onkeydown={(e: KeyboardEvent) => e.key === 'Enter' && handleAction('favorite')}
+      icon="remove_circle_outline--outlined"
+      onclick={handleRemoveFromLibrary}
+      onkeydown={(e: KeyboardEvent) =>
+        e.key === 'Enter' && handleRemoveFromLibrary()}
       role="menuitem"
       tabindex="0"
     >
-      Favorite
+      从音乐库中移除
     </mdui-list-item>
+
+    <div class="my-1 border-t border-(--controlGray)/50"></div>
+
     <mdui-list-item
       icon="delete_outline--rounded"
-      onclick={() => handleAction('delete')}
-      onkeydown={(e: KeyboardEvent) => e.key === 'Enter' && handleAction('delete')}
+      class="text-red-500 hover:bg-red-500/10"
+      onclick={handleShowDeleteConfirm}
+      onkeydown={(e: KeyboardEvent) =>
+        e.key === 'Enter' && handleShowDeleteConfirm()}
       role="menuitem"
       tabindex="0"
     >
-      Delete
+      删除文件
     </mdui-list-item>
   </mdui-list>
 </div>
+
+{#if showDeleteDialog}
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <div
+    class="fixed inset-0 z-60 flex items-center justify-center bg-black/50"
+    onmousedown={() => (showDeleteDialog = false)}
+    transition:fade={{ duration: 150 }}
+  >
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div
+      class="relative w-full max-w-sm rounded-2xl bg-(--controlBackground) p-6 shadow-2xl border border-(--controlGray)"
+      onpointerdown={e => e.stopPropagation()}
+      onkeydown={e => e.stopPropagation()}
+      transition:scale={{ duration: 150, start: 0.95 }}
+      role="alertdialog"
+      aria-label="确认删除"
+      tabindex="0"
+    >
+      <h3 class="text-lg font-bold mb-2">确认删除文件？</h3>
+      <p class="text-sm text-(--controlBright) mb-6">
+        此操作将永久删除文件<br />
+        <span class="font-medium text-(--controlDark)">
+          {track.title} - {track.artist}
+        </span><br />
+        且无法撤销。
+      </p>
+
+      <div class="flex justify-end gap-3">
+        <mdui-button
+          variant="text"
+          onclick={() => (showDeleteDialog = false)}
+          onkeydown={(e: KeyboardEvent) =>
+            e.key === 'Enter' && (showDeleteDialog = false)}
+          role="button"
+          tabindex="0"
+        >
+          取消
+        </mdui-button>
+        <mdui-button
+          variant="filled"
+          class="bg-red-500 hover:bg-red-600 text-white"
+          onclick={handleDeleteFile}
+          onkeydown={(e: KeyboardEvent) =>
+            e.key === 'Enter' && handleDeleteFile()}
+          role="button"
+          tabindex="0"
+        >
+          确认删除
+        </mdui-button>
+      </div>
+    </div>
+  </div>
+{/if}
+
+<style lang="postcss">
+  @reference "tailwindcss";
+</style>

@@ -1,162 +1,105 @@
 <script lang="ts">
-  import ContextMenu from '$lib/components/ContextMenu.svelte'
-  import SectionHeader from '$lib/components/SectionHeader.svelte'
-  import SongCard from '$lib/components/SongCard.svelte'
-  import { type Track } from '$lib/player.svelte'
+  import LibraryHeader from '$lib/components/LibraryHeader.svelte'
+  import MusicTable from '$lib/components/MusicTable.svelte'
+  import { libraryStore, type SongItem } from '$lib/library-store.svelte'
+  import { playerState } from '$lib/player.svelte'
+  import { invoke } from '@tauri-apps/api/core'
+  import { snackbar } from 'mdui/functions/snackbar.js'
 
-  const myPlaylists = [
-    {
-      id: 1,
-      name: 'Favorite Songs',
-      cover:
-        'https://pic1.zhimg.com/v2-b8472d97dd297753225bdae079343f50_1440w.jpeg',
-    },
-    {
-      id: 2,
-      name: 'Anime OSTs',
-      cover:
-        'https://pic1.zhimg.com/v2-b8472d97dd297753225bdae079343f50_1440w.jpeg',
-    },
-  ]
+  let filterText = $state('')
 
-  const librarySongs = [
-    {
-      id: 1,
-      title: '残酷天使的行动纲领',
-      artist: '高桥洋子',
-      album: 'NEON GENESIS EVANGELION',
-      releaseDate: '1995-10-25',
-      cover:
-        'https://pic1.zhimg.com/v2-b8472d97dd297753225bdae079343f50_1440w.jpeg',
-    },
-    {
-      id: 2,
-      title: '魂のルフラン',
-      artist: '高桥洋子',
-      album: 'NEON GENESIS EVANGELION',
-      releaseDate: '1995-10-25',
-      cover:
-        'https://pic1.zhimg.com/v2-b8472d97dd297753225bdae079343f50_1440w.jpeg',
-    },
-    {
-      id: 3,
-      title: 'Beautiful World',
-      artist: '宇多田光',
-      album: 'Beautiful World/Kiss & Cry',
-      releaseDate: '2007-08-29',
-      cover:
-        'https://pic1.zhimg.com/v2-b8472d97dd297753225bdae079343f50_1440w.jpeg',
-    },
-    {
-      id: 4,
-      title: 'One Last Kiss',
-      artist: '宇多田光',
-      album: 'One Last Kiss',
-      releaseDate: '2021-03-09',
-      cover:
-        'https://pic1.zhimg.com/v2-b8472d97dd297753225bdae079343f50_1440w.jpeg',
-    },
-    {
-      id: 5,
-      title: '千本樱',
-      artist: '初音未来',
-      album: '千本樱',
-      releaseDate: '2011-09-17',
-      cover:
-        'https://pic1.zhimg.com/v2-b8472d97dd297753225bdae079343f50_1440w.jpeg',
-    },
-  ]
+  async function loadMusicFromFolder() {
+    try {
+      const result = await invoke('select_music_folder')
+      const musicFiles = result as Array<{
+        path: string
+        name: string
+        artist: string
+        album: string
+        duration: number
+      }>
 
-  let playlistsCollapsed = $state(false)
+      if (musicFiles.length > 0) {
+        const newSongs: SongItem[] = musicFiles.map((file, index) => ({
+          id: Date.now() + index,
+          title: file.name,
+          artist: file.artist || 'Unknown Artist',
+          album: file.album || 'Unknown Album',
+          cover: '',
+          path: file.path,
+          duration: file.duration,
+          playCount: 0,
+        }))
 
-  let contextMenuConfig = $state<{ x: number; y: number; track: Track } | null>(
-    null,
-  )
+        libraryStore.setSongs(newSongs)
 
-  function handleContextMenu(e: MouseEvent) {
-    const target = e.target as HTMLElement
-    const card = target.closest('[data-song-id]') as HTMLElement
-    if (card) {
-      e.preventDefault()
-      const id = Number(card.getAttribute('data-song-id'))
-      const title = card.getAttribute('data-song-title')!
-      const artist = card.getAttribute('data-song-artist')!
-      const album = card.getAttribute('data-song-album')!
-      const cover = card.getAttribute('data-song-cover')!
-
-      contextMenuConfig = {
-        x: e.clientX,
-        y: e.clientY,
-        track: {
-          id,
-          title,
-          artist,
-          album,
-          cover,
-          path: `music/${artist} - ${title}.flac`,
-        },
+        snackbar({
+          message: `已加载 ${musicFiles.length} 首音乐文件`,
+        })
       }
+    } catch (error) {
+      console.error('Failed to select music folder:', error)
+      snackbar({
+        message:
+          error instanceof Error ? error.message : 'Failed to load music',
+      })
     }
   }
 
-  // Group by album
-  const groupedTracks = librarySongs.reduce(
-    (acc, song) => {
-      if (!acc[song.album]) {
-        acc[song.album] = {
-          collapsed: false,
-          songs: [],
-        }
-      }
-      acc[song.album].songs.push(song)
-      return acc
-    },
-    {} as Record<string, { collapsed: boolean; songs: typeof librarySongs }>,
-  )
+  function handlePlay(song: SongItem) {
+    const track = libraryStore.toTrack(song)
+    playerState.play(track)
+    libraryStore.incrementPlayCount(song.id)
+  }
 
-  const albums = $state(
-    Object.entries(groupedTracks).map(([name, data]) => ({
-      name,
-      collapsed: data.collapsed,
-      songs: data.songs,
-    })),
-  )
+  function handleRemove(index: number) {
+    libraryStore.removeSong(index)
+  }
+
+  const defaultCover =
+    'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDQ4IDQ4Ij48cmVjdCB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIGZpbGw9IiNlMGUwZTAiLz48cGF0aCBkPSJNMjQgMThhNiA2IDAgMSAwIDAgMTIgNiA2IDAgMCAwIDAtMTJ6bTAgOGE0IDQgMCAxIDEgMC04IDQgNCAwIDAgMSAwIDh6IiBmaWxsPSIjYTBiMGIwIi8+PC9zdmc+'
 </script>
 
-<div class="overflow-y-auto p-8">
-  <div class="mb-8">
-    <h2 class="text-3xl font-bold mb-6">Saved Songs</h2>
-    <div
-      class="flex flex-col gap-8"
-      oncontextmenu={handleContextMenu}
-      role="presentation"
-    >
-      {#each albums as album (album.name)}
-        <section>
-          <SectionHeader title={album.name} bind:collapsed={album.collapsed} />
-          {#if !album.collapsed}
-            <div
-              class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4 transition-all"
-            >
-              {#each album.songs as song (song.id)}
-                <SongCard {song} />
-              {/each}
-            </div>
-          {/if}
-        </section>
-      {/each}
-    </div>
+<div class="flex flex-col h-full">
+  <LibraryHeader
+    title="音乐库"
+    count={libraryStore.count}
+    bind:filterText
+    onscan={loadMusicFromFolder}
+  />
+
+  <div class="flex-1 overflow-y-auto px-8 pb-8">
+    {#if libraryStore.songs.length === 0}
+      <div
+        class="flex flex-col items-center justify-center h-full text-(--controlBright) gap-4 py-20"
+      >
+        <svg
+          class="w-20 h-20 opacity-30"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M9 19V6l12-3v13M9 19c0 1.66-1.34 3-3 3S3 20.66 3 19s1.34-3 3-3 3 1.34 3 3zm12-3c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3zM9 10l12-3"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <p class="text-base">音乐库为空</p>
+        <p class="text-sm opacity-60">点击右上角文件夹图标扫描音乐文件</p>
+      </div>
+    {:else}
+      <MusicTable
+        songs={libraryStore.songs}
+        {defaultCover}
+        {filterText}
+        onplay={handlePlay}
+        onremove={handleRemove}
+      />
+    {/if}
   </div>
 </div>
-
-{#if contextMenuConfig}
-  <ContextMenu
-    x={contextMenuConfig.x}
-    y={contextMenuConfig.y}
-    track={contextMenuConfig.track}
-    onclose={() => (contextMenuConfig = null)}
-  />
-{/if}
 
 <style lang="postcss">
   @reference "tailwindcss";

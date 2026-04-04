@@ -1,163 +1,64 @@
 <script lang="ts">
-  import ContextMenu from '$lib/components/ContextMenu.svelte'
-  import SectionHeader from '$lib/components/SectionHeader.svelte'
-  import SongCard from '$lib/components/SongCard.svelte'
-  import { type Track } from '$lib/player.svelte'
+  import LibraryHeader from '$lib/components/LibraryHeader.svelte'
+  import MusicTable from '$lib/components/MusicTable.svelte'
+  import { libraryStore, type SongItem } from '$lib/library-store.svelte'
+  import { playerState } from '$lib/player.svelte'
 
-  const playlists = [
-    {
-      id: 1,
-      name: '我的歌单',
-      cover:
-        'https://pic1.zhimg.com/v2-b8472d97dd297753225bdae079343f50_1440w.jpeg',
-    },
-    {
-      id: 2,
-      name: '收藏的艺术家',
-      cover:
-        'https://pic1.zhimg.com/v2-b8472d97dd297753225bdae079343f50_1440w.jpeg',
-    },
-    {
-      id: 3,
-      name: '收藏的专辑',
-      cover:
-        'https://pic1.zhimg.com/v2-b8472d97dd297753225bdae079343f50_1440w.jpeg',
-    },
-    {
-      id: 4,
-      name: '最近播放',
-      cover:
-        'https://pic1.zhimg.com/v2-b8472d97dd297753225bdae079343f50_1440w.jpeg',
-    },
-  ]
+  const defaultCover =
+    'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDQ4IDQ4Ij48cmVjdCB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIGZpbGw9IiNlMGUwZTAiLz48cGF0aCBkPSJNMjQgMThhNiA2IDAgMSAwIDAgMTIgNiA2IDAgMCAwIDAtMTJ6bTAgOGE0IDQgMCAxIDEgMC04IDQgNCAwIDAgMSAwIDh6IiBmaWxsPSIjYTBiMGIwIi8+PC9zdmc+'
 
-  const songs = [
-    {
-      id: 1,
-      title: '残酷天使的行动纲领',
-      artist: '高桥洋子',
-      album: 'NEON GENESIS EVANGELION',
-      releaseDate: '1995-10-25',
-      cover:
-        'https://pic1.zhimg.com/v2-b8472d97dd297753225bdae079343f50_1440w.jpeg',
-    },
-    {
-      id: 2,
-      title: '魂のルフラン',
-      artist: '高桥洋子',
-      album: 'NEON GENESIS EVANGELION',
-      releaseDate: '1995-10-25',
-      cover:
-        'https://pic1.zhimg.com/v2-b8472d97dd297753225bdae079343f50_1440w.jpeg',
-    },
-    {
-      id: 3,
-      title: 'Beautiful World',
-      artist: '宇多田光',
-      album: 'Beautiful World/Kiss & Cry',
-      releaseDate: '2007-08-29',
-      cover:
-        'https://pic1.zhimg.com/v2-b8472d97dd297753225bdae079343f50_1440w.jpeg',
-    },
-    {
-      id: 4,
-      title: 'One Last Kiss',
-      artist: '宇多田光',
-      album: 'One Last Kiss',
-      releaseDate: '2021-03-09',
-      cover:
-        'https://pic1.zhimg.com/v2-b8472d97dd297753225bdae079343f50_1440w.jpeg',
-    },
-  ]
+  let filterText = $state('')
 
-  let playlistsCollapsed = $state(false)
-
-  let contextMenuConfig = $state<{ x: number; y: number; track: Track } | null>(
-    null,
-  )
-
-  function handleContextMenu(e: MouseEvent) {
-    const target = e.target as HTMLElement
-    const card = target.closest('[data-song-id]') as HTMLElement
-    if (card) {
-      e.preventDefault()
-      const id = Number(card.getAttribute('data-song-id'))
-      const title = card.getAttribute('data-song-title')!
-      const artist = card.getAttribute('data-song-artist')!
-      const album = card.getAttribute('data-song-album')!
-      const cover = card.getAttribute('data-song-cover')!
-
-      contextMenuConfig = {
-        x: e.clientX,
-        y: e.clientY,
-        track: {
-          id,
-          title,
-          artist,
-          album,
-          cover,
-          path: `music/${artist} - ${title}.flac`,
-        },
-      }
-    }
+  function handlePlay(song: SongItem) {
+    playerState.play(libraryStore.toTrack(song))
+    libraryStore.incrementPlayCount(song.id)
   }
 
-  // Group by album
-  const groupedTracks = songs.reduce(
-    (acc, song) => {
-      if (!acc[song.album]) {
-        acc[song.album] = {
-          collapsed: false,
-          songs: [],
-        }
-      }
-      acc[song.album].songs.push(song)
-      return acc
-    },
-    {} as Record<string, { collapsed: boolean; songs: typeof songs }>,
-  )
-
-  const albums = $state(
-    Object.entries(groupedTracks).map(([name, data]) => ({
-      name,
-      collapsed: data.collapsed,
-      songs: data.songs,
-    })),
-  )
+  function handleRemove(index: number) {
+    libraryStore.removeSong(index)
+  }
 </script>
 
-<div class="overflow-y-auto p-8">
-  <div class="mb-8">
-    <h2 class="text-3xl font-bold mb-6">Recently Played Songs</h2>
-    <div
-      class="flex flex-col gap-8"
-      oncontextmenu={handleContextMenu}
-      role="presentation"
-    >
-      {#each albums as album (album.name)}
-        <section>
-          <SectionHeader title={album.name} bind:collapsed={album.collapsed} />
-          {#if !album.collapsed}
-            <div class="flex flex-col gap-4 mt-4 transition-all">
-              {#each album.songs as song (song.id)}
-                <SongCard {song} />
-              {/each}
-            </div>
-          {/if}
-        </section>
-      {/each}
-    </div>
+<div class="flex flex-col h-full">
+  <LibraryHeader
+    title="最近播放"
+    count={libraryStore.count}
+    bind:filterText
+    onscan={() => {}}
+  />
+
+  <div class="flex-1 overflow-y-auto px-8 pb-8">
+    {#if libraryStore.songs.length === 0}
+      <div
+        class="flex flex-col items-center justify-center h-full text-(--controlBright) gap-4 py-20"
+      >
+        <svg
+          class="w-20 h-20 opacity-30"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <p class="text-base">暂无最近播放记录</p>
+        <p class="text-sm opacity-60">播放音乐后将在此显示历史记录</p>
+      </div>
+    {:else}
+      <MusicTable
+        songs={libraryStore.songs}
+        {defaultCover}
+        {filterText}
+        onplay={handlePlay}
+        onremove={handleRemove}
+      />
+    {/if}
   </div>
 </div>
-
-{#if contextMenuConfig}
-  <ContextMenu
-    x={contextMenuConfig.x}
-    y={contextMenuConfig.y}
-    track={contextMenuConfig.track}
-    onclose={() => (contextMenuConfig = null)}
-  />
-{/if}
 
 <style lang="postcss">
   @reference "tailwindcss";
