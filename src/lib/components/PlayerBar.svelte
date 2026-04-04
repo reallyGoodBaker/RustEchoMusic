@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
-  import { playerState, type Track } from '$lib/player.svelte'
+  import { playerState } from '$lib/player.svelte'
+  import { type Track } from '$lib/types/tracks'
   import AudioEqualizerModal from './AudioEqualizerModal.svelte'
   import PlaylistManagerModal from './PlaylistManagerModal.svelte'
   import Slider from './Slider.svelte'

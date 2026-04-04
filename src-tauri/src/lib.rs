@@ -10,6 +10,10 @@ pub fn run() {
     let player_state = PlayerState::new();
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_sql::Builder::new().build())
+        .plugin(tauri_plugin_store::Builder::new().build())
+        .plugin(tauri_plugin_persisted_scope::init())
+        .plugin(tauri_plugin_window_state::Builder::new().build())
         .manage(context)
         .manage(player_state)
         .plugin(tauri_plugin_dialog::init())

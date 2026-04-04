@@ -1,6 +1,8 @@
 <script lang="ts">
-  import { playerState, type Track } from '$lib/player.svelte'
-  import { invoke } from '@tauri-apps/api/core'
+  import { playerState } from '$lib/player.svelte'
+  import { deleteFile, openContainingFolder } from '$lib/services/file'
+  import { type Track } from '$lib/types/tracks'
+  import { withErrorHandling } from '$lib/utils/error-handler'
   import 'mdui/components/button.js'
   import 'mdui/components/dialog.js'
   import 'mdui/components/list-item.js'
@@ -77,34 +79,37 @@
   }
 
   async function handleDeleteFile() {
-    try {
-      await invoke('delete_file', { path: track.path })
-      snackbar({ message: `已删除文件 "${track.title}"` })
+    const result = await withErrorHandling(
+      async () => {
+        await deleteFile(track.path)
+        if (onremovefromlibrary && songIndex >= 0) {
+          onremovefromlibrary(songIndex)
+        }
+        return true
+      },
+      `已删除文件 "${track.title}"`,
+      '删除文件失败',
+    )
 
-      if (onremovefromlibrary && songIndex >= 0) {
-        onremovefromlibrary(songIndex)
-      }
-    } catch (e) {
-      console.error('Failed to delete file:', e)
-      snackbar({
-        message: e instanceof Error ? e.message : '删除文件失败',
-      })
+    if (result !== null) {
+      showDeleteDialog = false
+      closeMenu()
     }
-
-    showDeleteDialog = false
-    closeMenu()
   }
 
   async function handleOpenFolder() {
-    try {
-      await invoke('open_containing_folder', { path: track.path })
-    } catch (e) {
-      console.error('Failed to open folder:', e)
-      snackbar({
-        message: e instanceof Error ? e.message : '无法打开文件夹',
-      })
+    const result = await withErrorHandling(
+      async () => {
+        await openContainingFolder(track.path)
+        return true
+      },
+      undefined,
+      '无法打开文件夹',
+    )
+
+    if (result !== null) {
+      closeMenu()
     }
-    closeMenu()
   }
 
   function handleRemoveFromLibrary() {

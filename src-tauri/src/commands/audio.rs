@@ -65,20 +65,14 @@ pub(crate) async fn play_music_from_path(
 }
 
 #[command]
-pub(crate) async fn pause_music(player: State<'_, PlayerState>) -> Result<(), String> {
-    player.stop_current();
+pub(crate) async fn pause_music(context: State<'_, AudioContext>) -> Result<(), String> {
+    context.suspend().await;
     Ok(())
 }
 
 #[command]
-pub(crate) async fn resume_music(
-    path: &str,
-    app_handle: tauri::AppHandle,
-    context: State<'_, AudioContext>,
-    player: State<'_, PlayerState>,
-) -> Result<(), String> {
-    let path_buf = PathBuf::from(path);
-    internal_play(path_buf, &context, &player, &app_handle).await?;
+pub(crate) async fn resume_music(context: State<'_, AudioContext>) -> Result<(), String> {
+    context.resume().await;
     Ok(())
 }
 

@@ -1,8 +1,15 @@
 <script lang="ts">
+  const defaultCover =
+    'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNlMGUwZTAiLz48cGF0aCBkPSJNMTAwIDYwYTIwIDIwIDAgMSAwIDAgNDAgMjAgMjAgMCAwIDAgMC00MHptMCAzMGExMyAxMyAwIDEgMSAwLTI2IDEzIDEzIDAgMCAxIDAgMjZ6IiBmaWxsPSIjYTBiMGIwIi8+PC9zdmc+'
+
   export let playlist: {
     id: number
     name: string
     cover: string
+  }
+
+  function handleImageError(e: Event) {
+    ;(e.target as HTMLImageElement).src = defaultCover
   }
 </script>
 
@@ -15,9 +22,10 @@
       class="w-full aspect-square rounded-lg overflow-hidden mb-4 transition-all duration-300 hover:scale-105 hover:shadow-lg"
     >
       <img
-        src={playlist.cover}
+        src={playlist.cover || defaultCover}
         alt={playlist.name}
         class="w-full h-full object-cover"
+        onerror={handleImageError}
       />
     </div>
     <div class="playlist-info">

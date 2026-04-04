@@ -1,4 +1,4 @@
-import type { Track } from './player.svelte'
+import type { Track } from './types/tracks'
 
 const STORAGE_KEY = 'rust-echo-music-library'
 

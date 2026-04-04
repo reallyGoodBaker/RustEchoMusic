@@ -1,17 +1,15 @@
-import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
-
-export type Track = {
-  id: number
-  title: string
-  artist: string
-  album: string
-  cover: string
-  path: string
-  duration?: number
-}
+import {
+  pauseMusic,
+  playMusicFromPath,
+  resumeMusic,
+  stopMusic,
+} from './services/audio'
+import { loadPlaylist, savePlaylist } from './services/store'
+import type { Track } from './types/tracks'
 
 class Player {
+  private progressInterval: number | null = null
   current = $state<Track | null>(null)
   isPlaying = $state(false)
   isBuffering = $state(false)
@@ -32,6 +30,8 @@ class Player {
       } catch (e) {
         console.error('Failed to load loop mode:', e)
       }
+
+      this.loadPersistedPlaylist()
 
       listen<boolean>('audio:buffering', event => {
         this.isBuffering = event.payload
@@ -64,9 +64,7 @@ class Player {
       this.isBuffering = true
       this.isPlaying = false
 
-      await invoke('play_music_from_path', {
-        path: this.current.path,
-      })
+      await playMusicFromPath(this.current.path)
 
       this.isPlaying = true
       this.isBuffering = false
@@ -86,11 +84,28 @@ class Player {
 
       this.error = errMsg
     }
+    this.startProgressTracking()
+  }
+
+  private startProgressTracking() {
+    this.stopProgressTracking()
+    this.progressInterval = setInterval(() => {
+      if (this.isPlaying && this.progress < 1000) {
+        this.progress += 1000 / (this.duration * 10)
+      }
+    }, 100)
+  }
+
+  private stopProgressTracking() {
+    if (this.progressInterval) {
+      clearInterval(this.progressInterval)
+      this.progressInterval = null
+    }
   }
 
   async pause(): Promise<void> {
     try {
-      await invoke('pause_music')
+      await pauseMusic()
       this.isPlaying = false
       this.isBuffering = false
     } catch (e) {
@@ -103,9 +118,7 @@ class Player {
 
     try {
       this.isBuffering = true
-      await invoke('resume_music', {
-        path: this.current.path,
-      })
+      await resumeMusic(this.current.path)
       this.isPlaying = true
       this.isBuffering = false
     } catch (e) {
@@ -160,7 +173,7 @@ class Player {
 
   async stop(): Promise<void> {
     try {
-      await invoke('stop_music')
+      await stopMusic()
       this.isPlaying = false
     } catch (e) {
       console.error('Failed to stop music:', e)
@@ -179,6 +192,30 @@ class Player {
       this.playlist.splice(currentIndex + 1, 0, track)
     } else {
       this.playlist.push(track)
+    }
+  }
+
+  setPlaylist(tracks: Track[]) {
+    this.playlist = tracks
+    this.persistPlaylist()
+  }
+
+  private async persistPlaylist() {
+    try {
+      await savePlaylist(this.playlist)
+    } catch (e) {
+      console.error('Failed to persist playlist:', e)
+    }
+  }
+
+  private async loadPersistedPlaylist() {
+    try {
+      const saved = await loadPlaylist()
+      if (saved && saved.length > 0) {
+        this.playlist = saved
+      }
+    } catch (e) {
+      console.error('Failed to load persisted playlist:', e)
     }
   }
 

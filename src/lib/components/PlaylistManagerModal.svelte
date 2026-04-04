@@ -1,7 +1,8 @@
 <script lang="ts">
   import { lockScroll } from '$lib/actions/lockScroll'
   import { portal } from '$lib/actions/portal'
-  import { playerState, type Track } from '$lib/player.svelte'
+  import { playerState } from '$lib/player.svelte'
+  import { type Track } from '$lib/types/tracks'
   import 'mdui/components/button-icon.js'
   import 'mdui/components/chip.js'
   import { cubicOut } from 'svelte/easing'

@@ -2,8 +2,9 @@
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
   import { libraryStore, type SongItem } from '$lib/library-store.svelte'
-  import { playerState, type Track } from '$lib/player.svelte'
-  import { invoke } from '@tauri-apps/api/core'
+  import { playerState } from '$lib/player.svelte'
+  import { selectMusicFolder } from '$lib/services/file'
+  import { type Track } from '$lib/types/tracks'
   import { snackbar } from 'mdui/functions/snackbar.js'
 
   const routes = [
@@ -50,24 +51,25 @@
 
   async function handleAddMusic() {
     try {
-      const result = await invoke('select_music_folder')
-      const musicFiles = result as Array<{
+      const result = await selectMusicFolder()
+      const musicFiles = result as unknown as Array<{
         path: string
-        name: string
+        title: string
         artist: string
         album: string
-        duration: number
+        duration_secs: number
+        cover_base64: string
       }>
 
       if (musicFiles.length > 0) {
         const newSongs: SongItem[] = musicFiles.map((file, index) => ({
           id: Date.now() + index,
-          title: file.name,
+          title: file.title,
           artist: file.artist || 'Unknown Artist',
           album: file.album || 'Unknown Album',
-          cover: '',
+          cover: file.cover_base64 || '',
           path: file.path,
-          duration: file.duration,
+          duration: file.duration_secs,
           playCount: 0,
         }))
 
