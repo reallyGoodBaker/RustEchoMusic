@@ -1,0 +1,7 @@
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub enum ExtensionState {
+    Enabled,
+    Disabled,
+}

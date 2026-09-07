@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>demo-view</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+        }
+        html,
+        body {
+            margin: 0;
+            padding: 16px;
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+            background: transparent;
+            color: #1f2937;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        h1 {
+            font-size: 16px;
+            margin: 0;
+        }
+        #status {
+            font-size: 13px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: rgba(99, 102, 241, 0.12);
+            color: #4338ca;
+            word-break: break-all;
+        }
+        #status.error {
+            background: rgba(239, 68, 68, 0.12);
+            color: #b91c1c;
+        }
+        #ready-info {
+            font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+            font-size: 12px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: rgba(17, 24, 39, 0.06);
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .row {
+            font-size: 12px;
+            opacity: 0.75;
+        }
+    </style>
+</head>
+<body>
+    <h1>demo-view</h1>
+    <div id="status">等待宿主握手...</div>
+    <div id="ready-info">（尚未收到 ready）</div>
+    <div class="row">pluginId: <span id="pid">—</span></div>
+    <div class="row">capabilities: <span id="caps">—</span></div>
+
+    <!--
+        引用宿主注入的 SDK。`__host__` 是 plugin:// scheme 保留的宿主段，
+        handler 会直接返回编译期嵌入的 static/plugin-sdk/plugin-host-sdk.js，
+        无需运行时文件依赖。
+    -->
+    <script src="plugin://__host__/plugin-sdk/plugin-host-sdk.js"></script>
+    <script>
+        (function () {
+            var statusEl = document.getElementById("status");
+            var infoEl = document.getElementById("ready-info");
+            var pidEl = document.getElementById("pid");
+            var capsEl = document.getElementById("caps");
+
+            function fail(err) {
+                statusEl.textContent = "握手失败: " + (err && err.message ? err.message : err);
+                statusEl.classList.add("error");
+                infoEl.textContent = String(err);
+            }
+
+            // 等待宿主 ready 握手，展示返回的 pluginId 与 capabilities
+            if (typeof window.rem === "undefined" || !window.rem.ready) {
+                fail(new Error("SDK 未注入（window.rem 不存在）"));
+                return;
+            }
+
+            window.rem
+                .ready()
+                .then(function (info) {
+                    statusEl.textContent = "握手成功";
+                    infoEl.textContent = JSON.stringify(info, null, 2);
+                    pidEl.textContent = (info && info.pluginId) || "—";
+                    capsEl.textContent =
+                        info && Array.isArray(info.capabilities)
+                            ? info.capabilities.join(", ")
+                            : "—";
+                })
+                .catch(fail);
+        })();
+    </script>
+</body>
+</html>

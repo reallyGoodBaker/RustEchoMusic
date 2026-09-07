@@ -1,0 +1,11 @@
+[workspace]
+members = [
+  "src-tauri",
+  "src-tauri/crates/plugin-sdk",
+  "src-tauri/crates/plugin-runtime",
+  "src-tauri/crates/lyrics-plugin",
+  "src-tauri/crates/eq-plugin",
+  "src-tauri/crates/recent-plugin",
+  "plugins/packaged/my-plugin",
+]
+resolver = "2"

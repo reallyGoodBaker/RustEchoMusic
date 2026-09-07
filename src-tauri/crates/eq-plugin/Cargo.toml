@@ -1,0 +1,10 @@
+[package]
+name = "eq-plugin"
+version = "0.1.0"
+edition = "2021"
+description = "Audio equalizer plugin for Rust Echo Music"
+
+[dependencies]
+plugin-sdk = { path = "../plugin-sdk" }
+serde_json = "1"
+serde = { version = "1", features = ["derive"] }

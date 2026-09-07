@@ -1,0 +1,30 @@
+{
+    "id": "",
+    "name": "",
+    "displayName": "",
+    "version": "1.0.0",
+    "author": "",
+    "description": "",
+    "entry": "",
+    "minAppVersion": "1.0.0",
+    "permissions": [
+        "pluginUI"
+    ],
+    "activationEvents": [
+        "onStartup"
+    ],
+    "contributes": {
+        "commands": [],
+        "menus": [],
+        "sidebars": [],
+        "views": [
+            {
+                "id": "main",
+                "title": "插件主页面",
+                "entry": "view/index.html",
+                "icon": "dashboard"
+            }
+        ]
+    },
+    "settings": []
+}

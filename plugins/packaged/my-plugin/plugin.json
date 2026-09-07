@@ -1,0 +1,16 @@
+{
+  "schema": 2,
+  "id": "my-plugin",
+  "name": "my-plugin",
+  "displayName": "My Plugin",
+  "version": "1.0.0",
+  "minHost": "1.0.0",
+  "abi": 2,
+  "author": "Developer",
+  "description": "参考插件，验证 packaged 插件可经 ABI 读取宿主能力（library.read / audio.process）",
+  "entry": "my-plugin",
+  "source": "packaged",
+  "tier": "feature",
+  "capabilities": ["library.read", "audio.process"],
+  "activation": { "eager": true }
+}

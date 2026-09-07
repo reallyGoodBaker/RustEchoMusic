@@ -1,0 +1,42 @@
+{
+    "id": "lyrics",
+    "source": "builtin",
+    "name": "lyrics",
+    "displayName": "Lyrics",
+    "version": "1.0.0",
+    "author": "RustEchoMusic",
+    "description": "Lyrics search, load, cache and sync display",
+    "entry": "lyrics",
+    "minAppVersion": "1.0.0",
+    "permissions": [
+        "playerRead",
+        "libraryRead"
+    ],
+    "activationEvents": [
+        "onStartup",
+        "onTrackChanged",
+        {"onCommand": "lyrics.search"},
+        {"onCommand": "lyrics.load"},
+        {"onCommand": "lyrics.clearCache"}
+    ],
+    "contributes": {
+        "commands": [
+            { "id": "lyrics.search", "title": "搜索歌词" },
+            { "id": "lyrics.load", "title": "加载歌词" },
+            { "id": "lyrics.clearCache", "title": "清除歌词缓存" }
+        ],
+        "menus": [],
+        "sidebars": [
+            { "id": "lyrics", "title": "歌词", "icon": "lyrics" }
+        ],
+        "nativeViews": [
+            { "id": "lyrics-panel-view", "title": "Lyrics", "token": "lyrics-panel", "icon": "lyrics" }
+        ]
+    },
+    "settings": [
+        { "key": "provider", "title": "歌词来源", "defaultValue": { "type": "Text", "value": "local" } },
+        { "key": "auto_search", "title": "自动搜索歌词", "defaultValue": { "type": "Bool", "value": true } },
+        { "key": "auto_scroll", "title": "自动滚动", "defaultValue": { "type": "Bool", "value": true } },
+        { "key": "cache_enabled", "title": "启用缓存", "defaultValue": { "type": "Bool", "value": true } }
+    ]
+}

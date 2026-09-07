@@ -1,0 +1,9 @@
+[package]
+name = "recent-plugin"
+version = "0.1.0"
+edition = "2021"
+description = "最近播放：以核心插件形态实现的应用功能"
+
+[dependencies]
+plugin-sdk = { path = "../plugin-sdk" }
+serde_json = "1"

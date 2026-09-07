@@ -1,7 +1,7 @@
 {
-  "name": "tauri-app",
+  "name": "rust-echo-music",
   "version": "0.1.0",
-  "description": "",
+  "description": "A desktop music player built with SvelteKit and Tauri",
   "type": "module",
   "scripts": {
     "dev": "vite dev",
@@ -13,6 +13,7 @@
   },
   "license": "MIT",
   "dependencies": {
+<<<<<<< HEAD
     "@mdui/icons": "^1.0.3",
     "@tailwindcss/vite": "^4.2.2",
     "@tauri-apps/api": "^2.10.1",
@@ -24,15 +25,27 @@
     "@tauri-apps/plugin-window-state": "~2.4.1",
     "mdui": "^2.1.4",
     "tailwindcss": "^4.2.2"
+=======
+    "@mdui/icons": "^1.0.4",
+    "@tailwindcss/vite": "^4.3.3",
+    "@tanstack/svelte-virtual": "^3.13.36",
+    "@tauri-apps/api": "^2.11.1",
+    "@tauri-apps/plugin-dialog": "~2.7.3",
+    "@tauri-apps/plugin-opener": "^2.5.5",
+    "@tauri-apps/plugin-store": "^2.4.4",
+    "mdui": "^2.1.5",
+    "tailwindcss": "^4.3.3"
+>>>>>>> pr/4
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.10",
-    "@sveltejs/kit": "^2.55.0",
-    "@sveltejs/vite-plugin-svelte": "^5.1.1",
-    "@tauri-apps/cli": "^2.10.1",
-    "svelte": "^5.55.1",
-    "svelte-check": "^4.4.5",
-    "typescript": "~5.6.3",
-    "vite": "^6.4.1"
-  }
+    "@sveltejs/kit": "^2.70.3",
+    "@sveltejs/vite-plugin-svelte": "^7.3.0",
+    "@tauri-apps/cli": "^2.11.4",
+    "svelte": "^5.57.0",
+    "svelte-check": "^4.7.6",
+    "typescript": "^6.0.3",
+    "vite": "^8.2.2"
+  },
+  "packageManager": "pnpm@11.25.0+sha512.5cde925b4f075f725eb71fbae18a42ffe784524789f19b61c731cb8721ec28aaee160e01a8d5af4fedb2a42cdbf300efe23db356b0d4a17b4d63e11f8ab7c956"
 }

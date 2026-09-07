@@ -1,0 +1,39 @@
+{
+    "id": "eq",
+    "source": "builtin",
+    "name": "eq",
+    "displayName": "Equalizer",
+    "version": "1.0.0",
+    "author": "RustEchoMusic",
+    "description": "10-band audio equalizer with presets",
+    "entry": "eq",
+    "minAppVersion": "1.0.0",
+    "permissions": ["audio"],
+    "activationEvents": [
+        "onStartup",
+        { "onCommand": "eq.apply_preset" },
+        { "onCommand": "eq.reset" },
+        { "onCommand": "eq.toggle" }
+    ],
+    "contributes": {
+        "commands": [
+            { "id": "eq.apply_preset", "title": "应用 EQ 预设" },
+            { "id": "eq.reset", "title": "重置 EQ" },
+            { "id": "eq.toggle", "title": "切换 EQ 开关" }
+        ],
+        "menus": [
+            { "command": "eq.apply_preset", "title": "Apply EQ Preset", "location": "TrackContextMenu", "group": "eq" }
+        ],
+        "sidebars": [
+            { "id": "eq", "title": "均衡器", "icon": "graphic_eq" }
+        ],
+        "nativeViews": [
+            { "id": "eq-panel-view", "title": "Equalizer", "token": "eq-panel", "icon": "graphic_eq" }
+        ]
+    },
+    "settings": [
+        { "key": "enabled", "title": "启用均衡器", "defaultValue": { "type": "Bool", "value": true } },
+        { "key": "preset", "title": "频段预设", "defaultValue": { "type": "Json", "value": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] } },
+        { "key": "preset_name", "title": "预设名称", "defaultValue": { "type": "Text", "value": "Flat" } }
+    ]
+}

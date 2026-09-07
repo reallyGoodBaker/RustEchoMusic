@@ -1,0 +1,16 @@
+{
+  "schema": 2,
+  "id": "audio-gain",
+  "name": "audio-gain",
+  "displayName": "Audio Gain",
+  "version": "1.0.0",
+  "minHost": "1.0.0",
+  "abi": 2,
+  "author": "RustEchoMusic",
+  "description": "示例音频插件：将音量降低 20%（验证实时音频路径走插件 ABI）",
+  "entry": "audio-gain",
+  "source": "packaged",
+  "tier": "feature",
+  "capabilities": ["audio.process"],
+  "activation": { "eager": true }
+}

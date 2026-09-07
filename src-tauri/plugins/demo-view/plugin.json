@@ -1,0 +1,28 @@
+{
+    "id": "demo-view",
+    "name": "demo-view",
+    "displayName": "Demo View Plugin",
+    "version": "0.1.0",
+    "author": "RustEchoMusic",
+    "description": "临时示例插件，用于验证 plugin:// scheme 与 view 字段结构（不会被注册为内置插件）。",
+    "entry": "view/index.html",
+    "minAppVersion": "0.1.0",
+    "permissions": [
+        "pluginUI"
+    ],
+    "activationEvents": [],
+    "contributes": {
+        "commands": [],
+        "menus": [],
+        "sidebars": [],
+        "views": [
+            {
+                "id": "main",
+                "title": "Demo View",
+                "entry": "view/index.html",
+                "icon": "dashboard"
+            }
+        ]
+    },
+    "settings": []
+}

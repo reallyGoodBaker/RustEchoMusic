@@ -14,8 +14,12 @@
     "core:window:allow-toggle-maximize",
     "core:window:allow-close",
     "dialog:default",
+<<<<<<< HEAD
     "fs:default",
     "store:default",
     "sql:default"
+=======
+    "store:default"
+>>>>>>> pr/4
   ]
 }
